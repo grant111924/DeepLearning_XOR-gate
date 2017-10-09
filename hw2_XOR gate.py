@@ -18,39 +18,66 @@ Y=[0,1,1,0]
 x1=x2=T.vector()
 a1=a2=y=T.scalar()
 eta=0.1
-time=100
-def parameterWXB(weight,vector,bias):#comupte z=wX+b 
-    neuron=T.dot(weight,vector)+bias  
-    return neuron    
-def sigmoid(z):# sigmoid activation function => [0,1] interval value 
-    sigmo=1/(1+T.exp(-z)) 
-    return  sigmo    
-   
-#Hidden No.1 Neurons w1,b1,z1,a1
-w1=theano.shared(np.array([random.random(),random.random()],dtype=np.float64),'w1')
-b1=theano.shared(0.)
-z1=parameterWXB(w1,x1,b1)
-a1=sigmoid(z1)  # sigmoid activation function
-                      
-#Hidden No.2 Neurons w2,b2,z2,a2
-w2=theano.shared(np.array([random.random(),random.random()],dtype=np.float64),'w2')
-b2=theano.shared(0.)
-z2=parameterWXB(w2,x2,b2)
-a2=sigmoid(z2)  # sigmoid activation function
+time=1
 
-
-#Output Neurons wO,bO,zO,y
-wO=theano.shared(np.array([random.random(),random.random()],dtype=np.float64),'wO')
-bO=theano.shared(0.)
-aX=[a1,a2]
-zO=parameterWXB(wO,aX,bO)
-aF=sigmoid(zO)
-cost =T.sum((aF-y)**2) #cost function  
-dw,db=T.grad(cost,[wO,bO]) #gradient compute
-gradient = theano.function([aX,y],updates=[(wO,wO-eta*dw),(bO,bO-eta*db)])# update function
+class Layer(object):
+     def __init__(self,inputX,inputSize,outputSize,activation_function=None):
+         self.W=T.matrix()
+         self.X=inputX
+         self.B=T.vector()
+         self.W=theano.shared(np.random.normal(0,1,(inputSize,outputSize)))
+         self.B=theano.shared(np.zeros(outputSize)+0.1)
+         print("init")
+         print(self.W.get_value())
+         #(self.B.get_value())
+         #(inputX)
+         self.WX_B=T.dot(self.X,self.W)+self.B
+         #print(self.WX_B.eval())
+         self.activation_function=activation_function
+         if activation_function is None:
+            self.outputs = self.WX_B
+         else:
+            self.outputs = self.activation_function(self.WX_B)
+            
+         #print(self.outputs.eval())
+         
+     def updateRule(self,layerIndex,layerLength,y): #Cr對W跟B微分 =Cr/Wij & =Cr/Bij
+         print("update")
+         
+         cost =T.sum((self.outputs-y)**2) #cost function    
+         if layerIndex==layerLength:
+             print("output Layer")
+             #   compute delta_L = a*sigma'(z)*c(y)
+             C_grad=T.grad(cost,self.outputs)
+             print(C_grad.eval())
+             sigma_grad=self.WX_B*(1-self.WX_B)
+             print(sigma_grad.eval())
+             dw=T.matrix()
+             print(self.X.eval())
+             dw=self.X*T.dot(sigma_grad,C_grad)
+             
+             
+         else:
+             print("hidden layer")
+             # x *sigma'(z)*(w) delta_(l-1)  
+         
+         
+                     
 
 for t in range(time):
      i=random.randrange(0,4)
+     trainingX=T.vector()
      trainingX=X[i]
      trainingY=Y[i]
-     gradient(trainingX,trainingY)
+     #print(trainingX)
+     #print("1")
+     l1=Layer(trainingX,2,2,T.nnet.sigmoid)
+     #l1.updateRule(1,2,trainingY)
+     print(l1.outputs.eval())
+     l2=Layer(l1.outputs,2,1,T.nnet.sigmoid)
+    # print(l2.W)
+     l2.updateRule(2,2,trainingY)
+    # print(l2.W)
+     
+     
+     
