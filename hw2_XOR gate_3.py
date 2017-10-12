@@ -50,7 +50,7 @@ def predic_old(out_W,out_B,hidden_W,hidden_B,inputs,y_hat):
          cost=T.sum((result-y_hat)**2)
          
          return cost
-def DWB_new(cost,b,w):
+def DWB_new(cost,b,w): #直接微分
          dw=T.grad(cost,w)
          db=T.grad(cost,b)
          return dw,db
@@ -65,16 +65,22 @@ hidden_W=theano.shared(np.random.normal(0,1,(2,2)))
 hidden_B=theano.shared(np.array([1.,1.]))
 out_W=theano.shared(np.array([random.random(),random.random()],dtype=np.float64),'w')#weight inital value=[-1,1]
 out_B=theano.shared(1.)  #bias inital value=0
-eta=0.7  #Learning rate
+eta=random.random()  #Learning rate
 
 a_cost,a_sigmoid=feedforward(x,hidden_W,hidden_B,y)
 r_cost,r_sigmoid=feedforward(a_sigmoid,out_W,out_B,y)
-#out_Delta=Delta_L(r_sigmoid,y)
+
+#利用detla 做運算
+#out_Delta=Delta_L(r_sigmoid,y)   
 #hidden_Delta=backpropagation(hidden_W,a_sigmoid,out_Delta)
 #out_dw,out_db=DWB(out_Delta,a_sigmoid)
 #hidden_dw,hidden_db=DWB(hidden_Delta,x)
+
+
+#直接微分
 out_dw,out_db=DWB_new(r_cost,out_B,out_W)
 hidden_dw,hidden_db=DWB_new(r_cost,hidden_B,hidden_W)
+
 grad=theano.function([x,y],outputs=[r_cost],updates=[(hidden_W,hidden_W-eta*hidden_dw),
                                      (hidden_B,hidden_B-eta*hidden_db),
                                      (out_W,out_W-eta*out_dw),
@@ -92,32 +98,10 @@ for t in range(time):
      trainingX=T.vector()
      trainingX=X[i]
      trainingY=Y[i]
-     #if (i+1) % 5000 == 0:
-        #print ("Iteration #%s: " % str(i+1))
-       # print ("Cost: %s" % str(cost))
      cost=grad(trainingX,trainingY)
      cost_history.append(cost)
-    
-     #print(t)
-     #print("out_B",out_B.eval())
-     #print("out_db",out_db.eval())
-     #hidden_W=hidden_W-eta*hidden_dw
-     #=hidden_B-eta*hidden_db
-     #out_W=out_W-eta*out_dw
-     #out_B=out_B-eta*out_db
-      
-     #print("out_B",out_B.eval())
-     #print("out_W",out_W.eval())
-     #print("out_dw",out_dw.eval())
-     #print("out_db",out_db.eval())
-        
-        
-     #print("hidden_W",hidden_W.eval())
-     #print("hidden_B",hidden_B.eval())
-     #print("hidden_dw",hidden_dw.eval())
-     #print("hidden_db",hidden_db.eval())
      
- #Plot training curve
+#Plot training curve
 plt.plot(range(1, len(cost_history)+1), cost_history)
 plt.grid(True)
 plt.xlim(1, len(cost_history))
@@ -126,14 +110,18 @@ plt.title("Training Curve")
 plt.xlabel("Iteration #")
 plt.ylabel("Cost")
 plt.show()
+
+print("Best hidden_B",hidden_B.eval())
+print("Best hidden_W",hidden_W.eval())
+print("Best out_B",out_B.eval())
+print("Best out_W",out_W.eval())
+
 for i in range(len(X)):
     inputs=T.vector()   
     inputs=X[i]
     prediction=predict(inputs)
-    print("predict:",prediction)
-    #outputs=Y[i]
-    #print("predict cost",X[i])
-    #print(predict(out_W,out_B,hidden_W,hidden_B,inputs,Y[i]).eval())
+    print("input :%r predict_result:%r"%(inputs,prediction))
+
 
 
 
