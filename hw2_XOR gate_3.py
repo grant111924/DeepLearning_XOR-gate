@@ -23,7 +23,7 @@ def feedforward(inputX,W,B,inputY):
         #activtion function
         outputs =1/(1+T.exp(-WX_B)) #print(outputs.eval())
         #cost function   
-        cost=T.sum((outputs-inputY)**2)
+        cost=0.5*T.sum((outputs-inputY)**2)
         #cost = T.nnet.binary_crossentropy(outputs, y).mean()
         return cost,outputs
     
@@ -101,7 +101,7 @@ for t in range(time):
      cost=grad(trainingX,trainingY)
      cost_history.append(cost)
      
-#Plot training curve
+#Plot training curve    
 plt.plot(range(1, len(cost_history)+1), cost_history)
 plt.grid(True)
 plt.xlim(1, len(cost_history))
